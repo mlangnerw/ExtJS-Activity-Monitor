@@ -16,7 +16,9 @@ Configs:
   - verbose (Boolean): Whether or not the ActivityMonitor() should output messages to the JavaScript console.
   - interval (Integer): How often (in millseconds) the monitorUI() method is executed after calling start()
   - maxInactive (Integer): The longest amount of time to consider the user "active" without regestering new mouse movement or keystrokes
+  - keepRunning (Boolean): Whether or not the ActivityMonitor() should keep running after inactivity has been detected. When the user returns and keepRunning is true the isBack callback is executed (defaults to false)
 
   - isActive (Function): Called each time monitorUI() detects the user is currently active (defaults to Ext.emptyFn)
   - isInactive (Funtion): Called when monitorUI() detects the user is inactive (defaults to Ext.emptyFn)
-
+  - isBack (Funtion): Called when monitorUI() detects the user is active again, depends on keepRunning (defaults to Ext.emptyFn)
+
