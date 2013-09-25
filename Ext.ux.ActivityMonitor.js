@@ -18,6 +18,9 @@ Ext.define('Ext.ux.ActivityMonitor', {
     verbose     : false,
     interval    : (1000 * 60 * 1), //1 minute
     maxInactive : (1000 * 60 * 5), //5 minutes
+    keepRunning : false,
+    inactive    : false,
+    listeners   : false,
     
     init : function(config) {
         if (!config) { config = {}; }
@@ -41,6 +44,7 @@ Ext.define('Ext.ux.ActivityMonitor', {
     
     isActive   : Ext.emptyFn,
     isInactive : Ext.emptyFn,
+    isBack     : Ext.emptyFn,
     
     start : function() {
         if (!this.isReady()) {
@@ -48,13 +52,16 @@ Ext.define('Ext.ux.ActivityMonitor', {
             return false;
         }
         
-        this.ui.on('mousemove', this.captureActivity, this);
-        this.ui.on('keydown', this.captureActivity, this);
+        if (!this.listeners) {
+            this.ui.on('mousemove', this.captureActivity, this);
+            this.ui.on('keydown', this.captureActivity, this);
+        }
         
         this.lastActive = new Date();
         this.log('ActivityMonitor has been started.');
         
         this.runner.start(this.task);
+        return true;
     },
     
     stop : function() {
@@ -65,14 +72,21 @@ Ext.define('Ext.ux.ActivityMonitor', {
         
         this.runner.stop(this.task);
         this.lastActive = null;
+        this.inactive = true;
         
-        this.ui.un('mousemove', this.captureActivity);
-        this.ui.un('keydown', this.captureActivity);
+        if (!this.keepRunning) {
+            this.ui.un('mousemove', this.captureActivity);
+            this.ui.un('keydown', this.captureActivity);
+        }
         
         this.log('ActivityMonitor has been stopped.');
+        return true;
     },
     
     captureActivity : function(eventObj, el, eventOptions) {
+        if (this.inactive && this.lastActive===null) {
+            this.start();
+        }
         this.lastActive = new Date();
     },
     
@@ -87,7 +101,13 @@ Ext.define('Ext.ux.ActivityMonitor', {
             this.isInactive();
         }
         else {
-            this.log('CURRENTLY INACTIVE FOR ' + inactive + ' (ms)');
+            if (this.inactive) {
+                this.log('USER IS BACK AGAIN');
+                this.inactive = false;
+                this.isBack();
+            } else {
+                this.log('CURRENTLY INACTIVE FOR ' + inactive + ' (ms)');
+            }
             this.isActive();
         }
     },
